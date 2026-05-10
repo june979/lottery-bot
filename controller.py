@@ -85,22 +85,29 @@ def check():
     response = check_winning_win720(auth_ctrl)
     send_message(0, 1, response=response, webhook_url=webhook_url)
 
-def buy(): 
-    load_dotenv(override=True) 
+def buy():
+    load_dotenv(override=True)
     count = int(os.environ.get('COUNT'))
     mode = "AUTO"
 
     auth_ctrl, username, webhook_url = _setup_and_login()
 
-    response = buy_lotto645(auth_ctrl, count, mode) 
-    send_message(1, 0, response=response, webhook_url=webhook_url)
+    # dhlottery API는 1회 최대 5게임 제한 → COUNT > 5면 5단위로 분할 호출
+    remaining = count
+    while remaining > 0:
+        chunk = min(5, remaining)
+        response = buy_lotto645(auth_ctrl, chunk, mode)
+        send_message(1, 0, response=response, webhook_url=webhook_url)
+        remaining -= chunk
+        if remaining > 0:
+            time.sleep(5)
 
     time.sleep(10)
 
     auth_ctrl.http_client.session.cookies.clear()
     auth_ctrl, username, webhook_url = _setup_and_login()
 
-    response = buy_win720(auth_ctrl, username) 
+    response = buy_win720(auth_ctrl, username)
     send_message(1, 1, response=response, webhook_url=webhook_url)
 
 def lotto_buy():

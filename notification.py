@@ -1,7 +1,18 @@
+import os
 import requests
 import re
 
 class Notification:
+    def _send_telegram(self, message: str) -> None:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        if not token or not chat_id:
+            return
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        try:
+            requests.post(url, data={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}, timeout=10)
+        except Exception as e:
+            print(f"[Telegram] send failed: {e}")
     def send_lotto_buying_message(self, body: dict, webhook_url: str) -> None:
         assert type(webhook_url) == str
 
@@ -136,10 +147,17 @@ class Notification:
             message = f"연금복권 - 다음 기회에... 🫠 (남은잔액 : {balance_str})"
             self._send_discord_webhook(webhook_url, message)
 
-    def _send_discord_webhook(self, webhook_url: str, message: str) -> None:        
-        if not webhook_url:
+    def _send_discord_webhook(self, webhook_url: str, message: str) -> None:
+        if webhook_url:
+            payload = { "content": message }
+            try:
+                requests.post(webhook_url, json=payload, timeout=10)
+            except Exception:
+                pass
+        else:
             print(f"[Info] Webhook URL not found. Message: {message}")
-            return
-        
-        payload = { "content": message }
-        requests.post(webhook_url, json=payload)
+        self._send_telegram(self._strip_for_telegram(message))
+
+    def _strip_for_telegram(self, msg: str) -> str:
+        # Discord/Slack 마크업을 Telegram 마크다운에 가깝게 정리
+        return msg.replace(":moneybag:", "💰").replace("```ini\n", "```\n")
