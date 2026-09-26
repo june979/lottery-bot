@@ -1,0 +1,31 @@
+name: Lottery
+# 스케줄 없음 — 맥미니 launchd가 gh workflow run으로 호출 (깃허브 60일 비활성 자동중지 회피)
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "buy_lotto | buy_win720 | check_lotto | check_win720"
+        required: true
+        default: check_lotto
+        type: choice
+        options: [buy_lotto, buy_win720, check_lotto, check_win720]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    name: ${{ inputs.task }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Run ${{ inputs.task }}
+        run: python3 controller.py ${{ inputs.task }}
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          COUNT: ${{ secrets.COUNT }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
