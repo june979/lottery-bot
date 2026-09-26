@@ -14,7 +14,7 @@ class Notification:
         except Exception as e:
             print(f"[Telegram] send failed: {e}")
     def send_lotto_buying_message(self, body: dict, webhook_url: str) -> None:
-        assert type(webhook_url) == str
+        webhook_url = webhook_url or ""
 
         result = body.get("result", {})
         if result.get("resultMsg", "FAILURE").upper() != "SUCCESS":  
@@ -71,7 +71,7 @@ class Notification:
 
     def send_lotto_winning_message(self, winning: dict, webhook_url: str) -> None: 
         assert type(winning) == dict
-        assert type(webhook_url) == str
+        webhook_url = webhook_url or ""
 
         balance_str = winning.get('balance', '확인불가')
         try: 
@@ -119,7 +119,7 @@ class Notification:
 
     def send_win720_winning_message(self, winning: dict, webhook_url: str) -> None: 
         assert type(winning) == dict
-        assert type(webhook_url) == str
+        webhook_url = webhook_url or ""
 
         balance_str = winning.get('balance', '확인불가')
         try:
